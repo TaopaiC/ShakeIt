@@ -1,7 +1,3 @@
-function RGB(red, green, blue) {
-  return ["rgb(", red.toString(16), ",", green.toString(16), ",", blue.toString(16), ")"].join("");
-}
-
 var score = 0;
 var old_axis = 0;
 var db;
@@ -34,43 +30,6 @@ function game_start() {
   game_start_time = new Date().getTime();
   window.addEventListener("devicemotion", onMotion);
   window.setInterval(updateGamePower, 200);
-}
-function initDb() {
-  try {
-    if (window.openDatabase) {
-      db = openDatabase("twetbar", "1.0", "HTML 5 Device Motion Example", 200000);
-      if (db) {
-        db.transaction(function(tx) {
-          tx.executeSql("CREATE TABLE IF NOT EXISTS Scores (id REAL UNIQUE, score INT, created_at TEXT)", []);
-          //, function(tx, result) {
-          //  clear();
-          //  //xxxx;
-          //} );
-        } );
-      } else {
-        // error occurred trying to open DB
-      }
-    } else {
-      // web Databases not supported
-    }
-  } catch(e) {
-    // error occurred during DB init, Web Database supported?
-  }
-}
-function insertScore(score, time) {
-  db.transaction(function(tx) {
-    tx.executeSql('INSERT INTO Scores (score, created_at) VALUES (?, ?)', [score, time]);
-  } );
-}
-function loadScores(callback) {
-  db.transaction(function(tx) {
-    tx.executeSql('SELECT * FROM Scores', [], callback);
-  } );
-}
-function clearScores(callback) {
-  db.transaction(function(tx) {
-    tx.executeSql('DELETE FROM Scores', [], callback);
-  } );
 }
 
 
@@ -157,17 +116,31 @@ function react(isPunch, evt) {
     if (power_size < 0) {power_size = 0;}
   }
 }
-function onMotion(evt) {
-  var x = evt.accelerationIncludingGravity.x;
-  var y = evt.accelerationIncludingGravity.y;
-  var z = evt.accelerationIncludingGravity.z;
 
-  var axis = x;
+function game_init() {
+  initDb();
 
-  if (Math.abs(axis) > 10 && (Math.abs(old_axis - axis) > 5)) {
-    react(true, evt);
-  } else {
-    react(false, evt);
-  }
-  old_axis = axis;
+  $("#game").bind("pageshow", function(event, ui) {
+    updateGameScore();
+  } ).bind("pagehide", function(event, ui) {
+    game_abort();
+  } );
+  start_button = $("#game #start_game");
+  start_button.bind("click", function() {
+    if (game_started) {
+      game_abort();
+    } else {
+      game_start();
+    }
+  } );
+
+  $("#scores").bind("pagebeforeshow", function(event, ui) {
+    loadScores(renderScores);
+  } ).bind("pagebeforecreate", function(event, ui) {
+    loadScores(renderScores);
+  } );
+
+  $("#score a[data-icon=delete]").bind("click", function(event) {
+    clearScores(renderScores);
+  } );
 }

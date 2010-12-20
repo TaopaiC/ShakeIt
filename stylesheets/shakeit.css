@@ -1,0 +1,13 @@
+#scores .ui-bar .time {
+  float: left;
+}
+#scores .ui-bar .created_at {
+  float: right;
+}
+#game .score {
+  color: #999;
+  background-color: #FFF;
+}
+.staff {
+  /*display: none;*/
+}

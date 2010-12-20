@@ -9,21 +9,9 @@
   <link rel="shortcut icon" href="/favicon.ico"></link>
   <link rel="apple-touch-icon" href="/apple-touch-icon.png"></link>
   <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.css" />
-  <style type="text/css">
-    #scores .ui-bar .time {
-      float: left;
-    }
-    #scores .ui-bar .created_at {
-      float: right;
-    }
-    #game .score {
-      color: #999;
-      background-color: #FFF;
-    }
-    .staff {
-      /*display: none;*/
-    }
-  </style>
+  <link rel="stylesheet" href="stylesheets/shakeit.css" />
+
+  <!-- loads jquery mobile here first, or layout will flicker -->
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
 </head>
@@ -87,35 +75,11 @@
   </div><!-- #game -->
 
 
+  <script type="text/javascript" src="javascripts/db.js"></script>
+  <script type="text/javascript" src="javascripts/util.js"></script>
   <script type="text/javascript" src="javascripts/shakeit.js"></script>
   <script type="text/javascript">
-    $(document).ready(function() {
-      initDb();
-
-      $("#game").bind("pageshow", function(event, ui) {
-        updateGameScore();
-      } ).bind("pagehide", function(event, ui) {
-        game_abort();
-      } );
-      start_button = $("#game #start_game");
-      start_button.bind("click", function() {
-        if (game_started) {
-          game_abort();
-        } else {
-          game_start();
-        }
-      } );
-
-      $("#scores").bind("pagebeforeshow", function(event, ui) {
-        loadScores(renderScores);
-      } ).bind("pagebeforecreate", function(event, ui) {
-        loadScores(renderScores);
-      } );
-
-      $("#score a[data-icon=delete]").bind("click", function(event) {
-        clearScores(renderScores);
-      } );
-    } );
+    $(document).ready(game_init);
   </script>
 </body>
 </html>
