@@ -140,7 +140,7 @@ function game_init() {
     loadScores(renderScores);
   } );
 
-  $("#score a[data-icon=delete]").bind("click", function(event) {
-    clearScores(renderScores);
+  $("#scores a[data-icon=delete]").bind("click", function(event) {
+    clearScores(function() {loadScores(renderScores)});
   } );
 }

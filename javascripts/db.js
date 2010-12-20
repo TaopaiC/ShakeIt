@@ -1,14 +1,10 @@
-function initDb() {
+function initDb(callback) {
   try {
     if (window.openDatabase) {
       db = openDatabase("twetbar", "1.0", "HTML 5 Device Motion Example", 200000);
       if (db) {
         db.transaction(function(tx) {
-          tx.executeSql("CREATE TABLE IF NOT EXISTS Scores (id REAL UNIQUE, score INT, created_at TEXT)", []);
-          //, function(tx, result) {
-          //  clear();
-          //  //xxxx;
-          //} );
+	  tx.executeSql("CREATE TABLE IF NOT EXISTS Scores (id REAL UNIQUE, score INT, created_at TEXT)", [], callback);
         } );
       } else {
         // error occurred trying to open DB
@@ -20,9 +16,9 @@ function initDb() {
     // error occurred during DB init, Web Database supported?
   }
 }
-function insertScore(score, time) {
+function insertScore(score, time, callback) {
   db.transaction(function(tx) {
-    tx.executeSql('INSERT INTO Scores (score, created_at) VALUES (?, ?)', [score, time]);
+    tx.executeSql('INSERT INTO Scores (score, created_at) VALUES (?, ?)', [score, time], callback);
   } );
 }
 function loadScores(callback) {
@@ -32,7 +28,7 @@ function loadScores(callback) {
 }
 function clearScores(callback) {
   db.transaction(function(tx) {
-    tx.executeSql('DELETE FROM Scores', [], callback);
+    tx.executeSql('DROP TABLE Scores', []);
   } );
+  initDb(callback);
 }
-
