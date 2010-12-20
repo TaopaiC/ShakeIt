@@ -10,25 +10,216 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png"></link>
   <link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.css" />
   <style type="text/css">
+    #scores .ui-bar .time {
+      float: left;
+    }
+    #scores .ui-bar .created_at {
+      float: right;
+    }
   </style>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script>
+  <script type="text/javascript" src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
 </head>
 <body>
-  <div data-role="page">
+  <div data-role="page" id="home">
     <header data-role="header">
+      <h1>Twet Bar</h1>
+      <a href="#about" data-icon="info" class="ui-btn-right">About</a>
     </header>
 
     <div data-role="content">
+      <a href="#game"   data-role="button" data-icon="star">Start Game</a>
+      <a href="#scores" data-role="button" data-icon="grid">Scores</a>
     </div>
 
-    <footer data-role="footer">
-    </footer>
+
+    <footer data-role="footer" data-position="fixed"><h4>goodstick.org</h4></footer>
   </div>
 
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script>
-  <script type="text/javascript" src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
+  <div data-role="page" id="scores">
+    <header data-role="header">
+      <h1>Scores</h1>
+      <a href="#" data-icon="delete" class="ui-btn-right">Clear</a>
+    </header>
+
+    <div data-role="content">
+      <p>Loading scores...</p>
+    </div>
+
+    <footer data-role="footer"><h4>goodstick.org</h4></footer>
+  </div>
+
+  <div data-role="page" id="about">
+    <header data-role="header"><h1>About this app</h1></header>
+    <div data-role="content">
+      <p>test</p>
+    </div>
+    <footer data-role="footer" data-position="fixed"><h4>goodstick.org</h4></footer>
+  </div>
+
+  <div data-role="page" id="game" data-theme="a">
+    <header data-role="header"><h1>Shake!</h1></header>
+    <div data-role="content">
+      <a href="#" data-role="button" id="start_game">Start</a>
+      <div class="ui-bar ui-bar-e"><span class="score">0</span></div>
+    </div>
+    <footer data-role="footer" data-position="fixed"><h4>goodstick.org</h4></footer>
+  </div>
+
 
   <script type="text/javascript">
+    function RGB(red, green, blue) {
+      return ["rgb(", red.toString(16), ",", green.toString(16), ",", blue.toString(16), ")"].join("");
+    }
+
+    var score = 0;
+    var old_axis = 0;
+    var db;
+    var start_button;
+    function game_abort() {
+      $(".ui-btn-text", start_button).text("Start");
+      window.removeEventListener("devicemotion", onMotion);
+    }
+    function game_finish() {
+      $(".ui-btn-text", start_button).text("Start");
+      window.removeEventListener("devicemotion", onMotion);
+      insertScore(score, getFormatedNowTime());
+    }
+    function game_start() {
+      $(".ui-btn-text", start_button).text("Cancel");
+      score = 0;
+      window.addEventListener("devicemotion", onMotion);
+    }
+    function initDb() {
+      try {
+        if (window.openDatabase) {
+          db = openDatabase("twetbar", "1.0", "HTML 5 Device Motion Example", 200000);
+          if (db) {
+            db.transaction(function(tx) {
+              tx.executeSql("CREATE TABLE IF NOT EXISTS Scores (id REAL UNIQUE, score INT, created_at TEXT)", []);
+              //, function(tx, result) {
+              //  clear();
+              //  //xxxx;
+              //} );
+            } );
+          } else {
+            // error occurred trying to open DB
+          }
+        } else {
+          // web Databases not supported
+        }
+      } catch(e) {
+        // error occurred during DB init, Web Database supported?
+      }
+    }
+    function insertScore(score, time) {
+      db.transaction(function(tx) {
+        tx.executeSql('INSERT INTO Scores (score, created_at) VALUES (?, ?)', [score, time]);
+      } );
+    }
+    function loadScores(callback) {
+      db.transaction(function(tx) {
+        tx.executeSql('SELECT * FROM Scores', [], callback);
+      } );
+    }
+    function clearScores(callback) {
+      db.transaction(function(tx) {
+        tx.executeSql('DELETE FROM Scores', [], callback);
+      } );
+    }
+
+
+    //  <fieldset class="ui-grid-a">
+    //    <div class="ui-block-a"><div class="ui-bar ui-bar-e">10:02"</div></div>
+    //    <div class="ui-block-b"><div class="ui-bar ui-bar-e">2010-10-20 20:30</div></div>
+    //  </fieldset>
+    function renderScores(tx, rs) {
+      e = $("#scores div[data-role=content]");
+      e.empty();
+
+      var r;
+      e.append(renderScoreTitle());
+      for (var i=0; i < rs.rows.length; i++) {
+        r = rs.rows.item(i);
+        e.append(renderScore(r['score'], r['created_at']));
+      }
+    }
+    function renderScoreTitle() {
+      var template = '<div class="ui-bar">' +
+        '<span class="time"/>' +
+        '<span class="created_at"/>' +
+      '</div>';
+      var fieldset = $(template).find(".time").text("Time").end().find(".created_at").text("Date").end();
+      return fieldset;
+    }
+    function renderScore(score, created_at) {
+      //var template = '<fieldset class="ui-grid-a">' +
+      //  '<div class="ui-block-a"><div class="ui-bar ui-bar-e time"></div></div>' +
+      //  '<div class="ui-block-b"><div class="ui-bar ui-bar-e created_at"></div></div>' +
+      //'</fieldset>'
+      var template = '<div class="ui-bar ui-bar-e">' +
+        '<span class="time"/>' +
+        '<span class="created_at"/>' +
+      '</div>';
+      var fieldset = $(template).find(".time").text(score).end().find(".created_at").text(created_at).end();
+      return fieldset;
+    }
+
+    function getFormatedNowTime() {
+      var now = new Date();
+      return now.getFullYear() + "/" + now.getMonth() + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes();
+    }
+
+    function react(isPunch, evt) {
+      if (isPunch) {
+        score++;
+        $("#game .score").text(score);
+
+        if (score > 3) {
+          game_finish();
+        }
+        $("#game").css("backgroundImage", "-moz-linear-gradient(center top," + RGB(0,score,0) + ",#222222)");
+        $("#game").css("backgroundImage", "-webkit-gradient(linear,left top,left bottom,color-stop(0," + RGB(0,score,0) + "),color-stop(1, #222222))");
+        $("#game").css("backgroundColor", RGB(0,score,0));
+      } else {
+      }
+    }
+    function onMotion(evt) {
+      var x = evt.accelerationIncludingGravity.x;
+      var y = evt.accelerationIncludingGravity.y;
+      var z = evt.accelerationIncludingGravity.z;
+
+      var axis = x;
+
+      if (Math.abs(axis) > 10 && (Math.abs(old_axis - axis) > 5)) {
+        react(true, evt);
+      } else {
+        react(false, evt);
+      }
+      old_axis = axis;
+    }
     $(document).ready(function() {
+      initDb();
+
+      $("#game").bind("pagehide", function(event, ui) {
+        game_abort();
+      } );
+      start_button = $("#game #start_game");
+      start_button.toggle( function() {
+        game_start();
+      }, function() {
+        game_abort();
+      } );
+
+      $("#scores").bind("pagebeforeshow", function(event, ui) {
+        loadScores(renderScores);
+      } ).bind("pagebeforecreate", function(event, ui) {
+        loadScores(renderScores);
+      } );
+
+      $("#score a[data-icon=delete]").bind("click", function(event) {
+        clearScores(renderScores);
+      } );
     } );
   </script>
 </body>
