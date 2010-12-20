@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />  
 
-  <title>HTML Template</title>
+  <title>Shake It!</title>
 
   <link rel="shortcut icon" href="/favicon.ico"></link>
   <link rel="apple-touch-icon" href="/apple-touch-icon.png"></link>
@@ -28,6 +28,7 @@
   <script type="text/javascript" src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
 </head>
 <body>
+  <!-- HOME -->
   <div data-role="page" id="home">
     <header data-role="header">
       <h1>Twet Bar</h1>
@@ -37,12 +38,13 @@
     <div data-role="content">
       <a href="#game"   data-role="button" data-icon="star">Start Game</a>
       <a href="#scores" data-role="button" data-icon="grid">Scores</a>
-    </div>
+    </div><!-- content -->
 
 
     <footer data-role="footer" data-position="fixed"><h4>goodstick.org</h4></footer>
-  </div>
+  </div><!-- #home -->
 
+  <!-- SCORES -->
   <div data-role="page" id="scores">
     <header data-role="header">
       <h1>Scores</h1>
@@ -51,21 +53,26 @@
 
     <div data-role="content">
       <p>Loading scores...</p>
-    </div>
+    </div><!-- content -->
 
     <footer data-role="footer"><h4>goodstick.org</h4></footer>
-  </div>
+  </div><!-- #scores -->
 
+  <!-- ABOUT -->
   <div data-role="page" id="about">
     <header data-role="header"><h1>About this app</h1></header>
+
     <div data-role="content">
       <p>test</p>
-    </div>
-    <footer data-role="footer" data-position="fixed"><h4>goodstick.org</h4></footer>
-  </div>
+    </div><!-- content -->
 
+    <footer data-role="footer" data-position="fixed"><h4>goodstick.org</h4></footer>
+  </div><!-- #about -->
+
+  <!-- GAME -->
   <div data-role="page" id="game" data-theme="a">
     <header data-role="header"><h1>Shake!</h1></header>
+
     <div data-role="content">
       <a href="#" data-role="button" id="start_game">Start</a>
       <div class="ui-bar ui-bar-a"><div class="score">0</div></div>
@@ -74,9 +81,10 @@
           Your browser does not support the <code>audio</code> element.  
         </audio> 
       </div>
-    </div>
+    </div><!-- content -->
+
     <footer data-role="footer" data-position="fixed"><h4>goodstick.org</h4></footer>
-  </div>
+  </div><!-- #game -->
 
 
   <script type="text/javascript">
