@@ -16,6 +16,13 @@
     #scores .ui-bar .created_at {
       float: right;
     }
+    #game .score {
+      color: #999;
+      background-color: #FFF;
+    }
+    .staff {
+      /*display: none;*/
+    }
   </style>
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script>
   <script type="text/javascript" src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
@@ -61,7 +68,12 @@
     <header data-role="header"><h1>Shake!</h1></header>
     <div data-role="content">
       <a href="#" data-role="button" id="start_game">Start</a>
-      <div class="ui-bar ui-bar-e"><span class="score">0</span></div>
+      <div class="ui-bar ui-bar-a"><div class="score">0</div></div>
+      <div class="stuff"> 
+        <audio id="audio" src="pong.mp3" preload="auto">
+          Your browser does not support the <code>audio</code> element.  
+        </audio> 
+      </div>
     </div>
     <footer data-role="footer" data-position="fixed"><h4>goodstick.org</h4></footer>
   </div>
@@ -75,20 +87,35 @@
     var score = 0;
     var old_axis = 0;
     var db;
+    var game_started = false;
+    var game_start_time;
     var start_button;
+    var goal = 100;
+    var power_size = 0;
+
     function game_abort() {
       $(".ui-btn-text", start_button).text("Start");
+      game_started = false;
       window.removeEventListener("devicemotion", onMotion);
+      window.clearInterval(updateGameScore);
     }
     function game_finish() {
       $(".ui-btn-text", start_button).text("Start");
+      game_started = false;
       window.removeEventListener("devicemotion", onMotion);
-      insertScore(score, getFormatedNowTime());
+      window.clearInterval(updateGameScore);
+      insertScore(new Date().getTime() - game_start_time, getFormatedNowTime());
     }
     function game_start() {
+      play_sound();
       $(".ui-btn-text", start_button).text("Cancel");
+      game_started = true;
       score = 0;
+      updateGameScore();
+      updateGamePower();
+      game_start_time = new Date().getTime();
       window.addEventListener("devicemotion", onMotion);
+      window.setInterval(updateGamePower, 200);
     }
     function initDb() {
       try {
@@ -161,8 +188,14 @@
         '<span class="time"/>' +
         '<span class="created_at"/>' +
       '</div>';
-      var fieldset = $(template).find(".time").text(score).end().find(".created_at").text(created_at).end();
+      var fieldset = $(template).find(".time").text(formatedScore(score)).end().find(".created_at").text(created_at).end();
       return fieldset;
+    }
+
+    function formatedScore(score) {
+      var sec  = parseInt(score / 1000, 10) || 0;
+      var msec = parseInt(score % 1000, 10) || 0;
+      return sec + "'" + msec;
     }
 
     function getFormatedNowTime() {
@@ -170,18 +203,40 @@
       return now.getFullYear() + "/" + now.getMonth() + "/" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes();
     }
 
+    function updateGameScore() {
+      var score_width = (score / goal * 100) || 0
+      $("#game .score").text(score).css("width", score_width.toString() + "%");
+    }
+    function updateGamePower() {
+      var color = RGB(0, power_size, 0);
+      $("#game").css("backgroundImage", "-moz-linear-gradient(center top," + color + ",#222222)");
+      $("#game").css("backgroundImage", "-webkit-gradient(linear,left top,left bottom,color-stop(0," + color + "),color-stop(1, #222222))");
+      $("#game").css("backgroundColor", color);
+    }
+
+    function play_sound() {
+      // var sound = $("#audio").get(0);
+      // sound.play();
+      var sound = new Audio();
+      sound.src = "pong.mp3";
+      sound.load();
+      sound.play();
+    }
+
     function react(isPunch, evt) {
       if (isPunch) {
         score++;
-        $("#game .score").text(score);
+        updateGameScore();
 
-        if (score > 3) {
+        if (score >= goal) {
           game_finish();
+          return;
         }
-        $("#game").css("backgroundImage", "-moz-linear-gradient(center top," + RGB(0,score,0) + ",#222222)");
-        $("#game").css("backgroundImage", "-webkit-gradient(linear,left top,left bottom,color-stop(0," + RGB(0,score,0) + "),color-stop(1, #222222))");
-        $("#game").css("backgroundColor", RGB(0,score,0));
+        power_size += 30;
+        if (power_size > 255) {power_size = 255;}
       } else {
+        power_size -= 5;
+        if (power_size < 0) {power_size = 0;}
       }
     }
     function onMotion(evt) {
@@ -201,14 +256,18 @@
     $(document).ready(function() {
       initDb();
 
-      $("#game").bind("pagehide", function(event, ui) {
+      $("#game").bind("pageshow", function(event, ui) {
+        updateGameScore();
+      } ).bind("pagehide", function(event, ui) {
         game_abort();
       } );
       start_button = $("#game #start_game");
-      start_button.toggle( function() {
-        game_start();
-      }, function() {
-        game_abort();
+      start_button.bind("click", function() {
+        if (game_started) {
+          game_abort();
+        } else {
+          game_start();
+        }
       } );
 
       $("#scores").bind("pagebeforeshow", function(event, ui) {
