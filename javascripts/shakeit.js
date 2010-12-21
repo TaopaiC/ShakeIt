@@ -1,6 +1,7 @@
 var score = 0;
 var old_axis = 0;
 var db;
+var ShakeDb;
 var game_started = false;
 var game_start_time;
 var start_button;
@@ -18,7 +19,7 @@ function game_finish() {
   game_started = false;
   window.removeEventListener("devicemotion", onMotion);
   window.clearInterval(updateGameScore);
-  insertScore(new Date().getTime() - game_start_time, getFormatedNowTime());
+  shake_db.insertScore(new Date().getTime() - game_start_time, getFormatedNowTime());
 }
 function game_start() {
   play_sound();
@@ -32,12 +33,19 @@ function game_start() {
   window.setInterval(updateGamePower, 200);
 }
 
+function refreshScores() {
+  console.debug("refresh Scores 1");
+  console.dir(renderScores);
+  shake_db.loadScores(renderScores);
+  console.debug("refresh Scores 1");
+}
 
 //  <fieldset class="ui-grid-a">
 //    <div class="ui-block-a"><div class="ui-bar ui-bar-e">10:02"</div></div>
 //    <div class="ui-block-b"><div class="ui-bar ui-bar-e">2010-10-20 20:30</div></div>
 //  </fieldset>
 function renderScores(tx, rs) {
+  console.debug("render Scores 1");
   e = $("#scores div[data-role=content]");
   e.empty();
 
@@ -47,6 +55,7 @@ function renderScores(tx, rs) {
     r = rs.rows.item(i);
     e.append(renderScore(r['score'], r['created_at']));
   }
+  console.debug("render Scores 2");
 }
 function renderScoreTitle() {
   var template = '<div class="ui-bar">' +
@@ -118,7 +127,8 @@ function react(isPunch, evt) {
 }
 
 function game_init() {
-  initDb();
+  shake_db = new ShakeDB();
+  shake_db.init();
 
   $("#game").bind("pageshow", function(event, ui) {
     updateGameScore();
@@ -135,12 +145,14 @@ function game_init() {
   } );
 
   $("#scores").bind("pagebeforeshow", function(event, ui) {
-    loadScores(renderScores);
+    refreshScores();
   } ).bind("pagebeforecreate", function(event, ui) {
-    loadScores(renderScores);
+    refreshScores();
   } );
 
   $("#scores a[data-icon=delete]").bind("click", function(event) {
-    clearScores(function() {loadScores(renderScores)});
+    shake_db.clearScores();
+    console.debug("test");
+    refreshScores();
   } );
 }
