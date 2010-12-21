@@ -5,7 +5,7 @@ var ShakeDb;
 var game_started = false;
 var game_start_time;
 var start_button;
-var goal = 100;
+var goal = 4;
 var power_size = 0;
 
 function game_abort() {
@@ -34,10 +34,7 @@ function game_start() {
 }
 
 function refreshScores() {
-  console.debug("refresh Scores 1");
-  console.dir(renderScores);
   shake_db.loadScores(renderScores);
-  console.debug("refresh Scores 1");
 }
 
 //  <fieldset class="ui-grid-a">
@@ -45,7 +42,6 @@ function refreshScores() {
 //    <div class="ui-block-b"><div class="ui-bar ui-bar-e">2010-10-20 20:30</div></div>
 //  </fieldset>
 function renderScores(tx, rs) {
-  console.debug("render Scores 1");
   e = $("#scores div[data-role=content]");
   e.empty();
 
@@ -55,7 +51,6 @@ function renderScores(tx, rs) {
     r = rs.rows.item(i);
     e.append(renderScore(r['score'], r['created_at']));
   }
-  console.debug("render Scores 2");
 }
 function renderScoreTitle() {
   var template = '<div class="ui-bar">' +
@@ -151,8 +146,6 @@ function game_init() {
   } );
 
   $("#scores a[data-icon=delete]").bind("click", function(event) {
-    shake_db.clearScores();
-    console.debug("test");
-    refreshScores();
+    shake_db.clearScores(refreshScores);
   } );
 }
