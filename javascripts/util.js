@@ -2,6 +2,8 @@ function RGB(red, green, blue) {
   return ["rgb(", red.toString(16), ",", green.toString(16), ",", blue.toString(16), ")"].join("");
 }
 
+var old_axis;
+
 function onMotion(evt) {
   var x = evt.accelerationIncludingGravity.x;
   var y = evt.accelerationIncludingGravity.y;
