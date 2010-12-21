@@ -12,20 +12,22 @@ function ShakeIt(config) {
   this.start_button;
   this.shake_db;
   this.power_size      = 0;
+  this.devicemotionFunction    = null;
   this.updateGamePowerFunction = null;
+  this.old_axis;
 }
 
 ShakeIt.prototype = {
   game_abort: function() {
     $(".ui-btn-text", this.start_button).text("Start");
     this.game_started = false;
-    window.removeEventListener("devicemotion", onMotion);
+    window.removeEventListener("devicemotion", this.devicemotionFunction);
     window.clearInterval(this.updateGamePowerFunction);
   },
   game_finish: function() {
     $(".ui-btn-text", this.start_button).text("Start");
     this.game_started = false;
-    window.removeEventListener("devicemotion", onMotion);
+    window.removeEventListener("devicemotion", this.devicemotionFunction);
     window.clearInterval(this.updateGamePowerFunction);
     this.shake_db.insertScore(new Date().getTime() - this.game_start_time, this.getFormatedNowTime());
   },
@@ -37,9 +39,25 @@ ShakeIt.prototype = {
     this.updateGameScore();
     this.updateGamePower();
     this.game_start_time = new Date().getTime();
-    window.addEventListener("devicemotion", onMotion);
+
     var that = this;
+    this.devicemotionFunction    = function(evt) {  that.onMotion(evt)  };
+    window.addEventListener("devicemotion", this.devicemotionFunction );
     this.updateGamePowerFunction = window.setInterval(function() { that.updateGamePower(); }, 200);
+  },
+  onMotion: function(evt) {
+    var x = evt.accelerationIncludingGravity.x;
+    var y = evt.accelerationIncludingGravity.y;
+    var z = evt.accelerationIncludingGravity.z;
+  
+    var axis = x;
+  
+    if (Math.abs(axis) > 10 && (Math.abs(this.old_axis - axis) > 5)) {
+      this.react(true, evt);
+    } else {
+      this.react(false, evt);
+    }
+    this.old_axis = axis;
   },
   refreshScores: function() {
     var that = this;
