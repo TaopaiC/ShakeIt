@@ -79,7 +79,17 @@
   <script type="text/javascript" src="javascripts/util.js"></script>
   <script type="text/javascript" src="javascripts/shakeit.js"></script>
   <script type="text/javascript">
-    $(document).ready(game_init);
+    //$(document).ready(game_init);
+    var shakeit;
+    $(document).ready(function() {
+      shakeit = new ShakeIt( {
+        scores_page : "#scores",
+        game_page   : "#game",
+        goal        : 100,
+        db          : new ShakeDB()
+      } );
+      shakeit.game_init();
+    } );
   </script>
 </body>
 </html>

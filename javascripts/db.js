@@ -1,18 +1,16 @@
 function ShakeDB() {
-  var db;
-  var self;
+  this.db;
 }
 
 ShakeDB.prototype = {
   init: function(callback) {
-    self = this;
-
+    var that = this;
     try {
       if (window.openDatabase) {
-        self.db = openDatabase("twetbar", "1.0", "HTML 5 Device Motion Example", 200000);
-        if (self.db) {
-          self.db.transaction(function(tx) {
-  	    tx.executeSql("CREATE TABLE IF NOT EXISTS Scores (id REAL UNIQUE, score INT, created_at TEXT);", [], callback, self.sqlFailed);
+        this.db = openDatabase("twetbar", "1.0", "HTML 5 Device Motion Example", 200000);
+        if (this.db) {
+          this.db.transaction(function(tx) {
+  	    tx.executeSql("CREATE TABLE IF NOT EXISTS Scores (id REAL UNIQUE, score INT, created_at TEXT);", [], callback, that.sqlFailed);
           } );
         } else {
           console.error("error occurred trying to open DB");
@@ -28,20 +26,23 @@ ShakeDB.prototype = {
     console.error("SQL Transaction Failed. Message: " + err.message);
   },
   insertScore: function(score, time, callback) {
-    self.db.transaction(function(tx) {
-      tx.executeSql('INSERT INTO Scores (score, created_at) VALUES (?, ?);', [score, time], callback, self.sqlFailed);
+    var that = this;
+    this.db.transaction(function(tx) {
+      tx.executeSql('INSERT INTO Scores (score, created_at) VALUES (?, ?);', [score, time], callback, that.sqlFailed);
     } );
   },
   loadScores:function(callback) {
-    self.db.transaction(function(tx) {
-      tx.executeSql('SELECT * FROM Scores;', [], callback, self.sqlFailed);
+    var that = this;
+    this.db.transaction(function(tx) {
+      tx.executeSql('SELECT * FROM Scores;', [], callback, that.sqlFailed);
     } );
   },
   clearScores:function(callback) {
-    self.db.transaction(function(tx) {
-      tx.executeSql('DELETE FROM Scores;', [], null, self.sqlFailed);
+    var that = this;
+    this.db.transaction(function(tx) {
+      tx.executeSql('DELETE FROM Scores;', [], null, that.sqlFailed);
     } );
-    self.init(callback);
+    this.init(callback);
   }
 }
 
